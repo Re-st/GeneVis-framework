@@ -103,9 +103,15 @@ def identify_crashes(targ, targ_dir):
         if check_targeted_crash(targ, replay_buf):
             crash_full_name = re.search(CRASH_FULL_RE, replay_buf).group(1)
             crash_id = re.search(ID_RE, replay_buf).group(1)
-            reps = re.search(REP_RE, replay_buf).group(1)
+            try:
+                reps = re.search(REP_RE, replay_buf).group(1)
+            except:
+                reps = "0"
             mutation_string = f'{reps} operations overlapped'
-            parents = re.search(PARENT_RE, replay_buf).group(1)
+            try:
+                parents = re.search(PARENT_RE, replay_buf).group(1)
+            except:
+                parents = "0"
             if "+" in parents:
                 parents = parents.split("+")
             else:

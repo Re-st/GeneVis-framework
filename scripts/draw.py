@@ -308,38 +308,38 @@ def generate_json(outdir):
         metadata_dict[str(seed)] = {
             "found_time": seeds[seed]["found_time"],
             "parents": seeds[seed]["parents"],
-            "time_delta": seeds[seed]["time_delta"],
-            "mutation": seeds[seed]["mutation"],
-            "mutation_delta": seeds[seed]["mutation_delta"],
-            "coverage": seeds[seed]["coverage"]
+            "time_delta": 0,
+            "mutation": 0,
+            "mutation_delta": 0,
+            "coverage": 0,
         }
     for crash in crashes:
         metadata_dict["Crash: " + crash] = {
             "found_time": crashes[crash]["found_time"],
             "parents": crashes[crash]["parents"],
-            "time_delta": crashes[crash]["time_delta"],
-            "mutation": crashes[crash]["mutation"],
-            "mutation_delta": crashes[crash]["mutation_delta"],
+            "time_delta": 0,
+            "mutation": 0,
+            "mutation_delta": 0,
             "coverage": ""
         }
 
     json_file = open(os.path.join(outdir, "metadata.json"), "w")
     json.dump(metadata_dict, json_file)
 
-    ## Save mutation delta to a file
-    mut_outdir = os.path.join(outdir, "mutation_delta")
-    os.mkdir(mut_outdir)
-    for seed in seeds:
-        f = open(os.path.join(mut_outdir, str(seed) + ".txt"), "w")
-        f.write(seeds[seed]["mutation_delta"])
-        f.close()
-    for crash in crashes:
-        f = open(os.path.join(mut_outdir, "Crash: " + crash+ ".txt"), "w")
-        f.write(crashes[crash]["mutation_delta"])
-        f.close()
+    # ## Save mutation delta to a file
+    # mut_outdir = os.path.join(outdir, "mutation_delta")
+    # os.mkdir(mut_outdir)
+    # for seed in seeds:
+    #     f = open(os.path.join(mut_outdir, str(seed) + ".txt"), "w")
+    #     f.write(seeds[seed]["mutation_delta"])
+    #     f.close()
+    # for crash in crashes:
+    #     f = open(os.path.join(mut_outdir, "Crash: " + crash+ ".txt"), "w")
+    #     f.write(crashes[crash]["mutation_delta"])
+    #     f.close()
 
 def export_outdir(outdir):
-    export_dir = "/var/www/html/goodtaeeun/genevis/temp"
+    export_dir = "/var/www/html/gun/genevis/temp"
     if os.path.exists(export_dir):
         shutil.rmtree(export_dir)
     shutil.copytree(outdir, export_dir)
@@ -358,9 +358,9 @@ def main():
     # Calculate delta between parent and the child
     calculate_found_time_delta()
     # Calculate mutation delta
-    calculate_mutation_delta(indir)
+    # calculate_mutation_delta(indir)
 
-    calculate_coverage(indir)
+    # calculate_coverage(indir)
     
     outdir = generate_vis_dir(indir)
     generate_json(outdir)
