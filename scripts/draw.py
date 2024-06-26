@@ -15,6 +15,7 @@ PARENT_RE = r'src:([^,]+)'
 SEC_RE = r'(\d+)\s+sec'
 REP_RE = r'rep:(\d+)'
 SEED_FULL_RE = r'Seed - (.*) \(found at'
+CRASH_FULL_RE = r'Crash - (.*) \(found at'
 
 seeds = {}
 crashes = {}
@@ -82,6 +83,33 @@ def read_and_parse_crashes(indir,target):
     imported_crashes = identify_crashes(target,indir)
     for crash in imported_crashes:
         crashes[crash] = imported_crashes[crash]
+    log_txt = open(os.path.join(indir,"crash_log.txt"), 'r')
+    crash_list = []
+    for line in log_txt.readlines():
+        mutation_string = ""
+        if "Crash - " in line:
+            full_name = re.search(CRASH_FULL_RE, line).group(1)
+            crash_id = re.search(ID_RE, line).group(1)
+            
+            if "src:" not in line:
+                # This is an initial crash
+                parents =[]
+            else:
+                parents = re.search(PARENT_RE, line).group(1)
+                if "+" in parents:
+                    parents = parents.split("+")
+                else:
+                    parents = [parents]
+
+                parents = [int(parent) for parent in parents]
+
+                reps = re.search(REP_RE, line).group(1)
+                mutation_string = f'{reps} operations overlapped'
+                if "cov+" in line:
+                    mutation_string += ", new branch edge covered"
+
+            crashes[crash_id]["parents"] = parents
+            crashes[crash_id]["mutation"] = mutation_string
 
     
 
@@ -339,16 +367,17 @@ def generate_json(outdir):
     #     f.close()
 
 def export_outdir(outdir, iternum):
-    export_dir = f"/var/www/html/gun/genevis/temp/{iternum}"
+    export_dir = f"/var/www/html/gun/genevis/Topuzz/{iternum}"
     if os.path.exists(export_dir):
         shutil.rmtree(export_dir)
     shutil.copytree(outdir, export_dir)
 
 def do(indir):
+    seeds = {}
+    crashes = {}
     target, iternum = os.path.basename(indir).split("-iter-")
     # filler seed log
-    dest = os.path.join(indir, "seed_log.txt")
-    if not os.path.isfile(dest):
+    if not os.path.isfile(os.path.join(indir, "seed_log.txt")) or not os.path.isfile(os.path.join(indir, "crash_log.txt")):
         subprocess.run([os.path.join(BASE_DIR, "make_filler_seed_log.sh")], check=True, cwd=indir)
     # Read and parse seeds
     read_and_parse_seeds(indir)

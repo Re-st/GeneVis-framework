@@ -100,30 +100,17 @@ def identify_crashes(targ, targ_dir):
         if ADDITIONAL_INFO_SIG in replay_buf:
             remove_idx = buf.find(ADDITIONAL_INFO_SIG)
             replay_buf = replay_buf[:remove_idx]
+        crash_full_name = re.search(CRASH_FULL_RE, replay_buf).group(1) 
         if check_targeted_crash(targ, replay_buf):
-            crash_full_name = re.search(CRASH_FULL_RE, replay_buf).group(1)
-            crash_id = re.search(ID_RE, replay_buf).group(1)
-            try:
-                reps = re.search(REP_RE, replay_buf).group(1)
-            except:
-                reps = "0"
-            mutation_string = f'{reps} operations overlapped'
-            try:
-                parents = re.search(PARENT_RE, replay_buf).group(1)
-            except:
-                parents = "0"
-            if "+" in parents:
-                parents = parents.split("+")
-            else:
-                parents = [parents]
-
-            parents = [int(p) for p in parents]
-            found_time = int(replay_buf.split(FOUND_TIME_SIG)[1].split()[0])
-            target_crashes[crash_id] = {
-                "full_name": crash_full_name,
-                "found_time": found_time,
-                "parents": parents,
-                "mutation": mutation_string}
+            crash_full_name += f" found {targ}"
+        crash_id = re.search(ID_RE, replay_buf).group(1)
+        found_time = int(replay_buf.split(FOUND_TIME_SIG)[1].split()[0])
+        target_crashes[crash_id] = {
+            "full_name": crash_full_name,
+            "found_time": found_time
+            # "parents": parents,
+            # "mutation": mutation_string
+        }
     return target_crashes
 
 def read_sa_results():

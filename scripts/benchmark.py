@@ -42,6 +42,7 @@ FUZZ_TARGETS = [
         check_objdump_2018_17360),
     ("xmllint-2017-9047", "--valid @@", "file", check_xmllint_2017_9047),
     ("xmllint-2017-9048", "--valid @@", "file", check_xmllint_2017_9048),
+    ("xmllint-topuzz", "--valid @@", "file", check_xmllint_2017_9048),
     ("strip-2017-7303", "-o /dev/null @@", "file", check_strip_2017_7303),
     ("nm-2017-14940", "-A -a -l -S -s --special-syms --synthetic --with-symbol-versions -D @@", \
         "file", check_nm_2017_14940),
