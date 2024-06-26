@@ -1,4 +1,5 @@
 import os
+import subprocess
 import sys
 import re
 import difflib
@@ -295,7 +296,6 @@ def generate_json(outdir):
         graph_dict["nodes"].append("Crash: " + crash)
         for parent in crashes[crash]["parents"]:
             graph_dict["edges"].append((str(parent), "Crash: " + crash))
-
     json_file = open(os.path.join(outdir, "seed_graph.json"), "w")
     json.dump(graph_dict, json_file)
 
@@ -338,19 +338,18 @@ def generate_json(outdir):
     #     f.write(crashes[crash]["mutation_delta"])
     #     f.close()
 
-def export_outdir(outdir):
-    export_dir = "/var/www/html/gun/genevis/temp"
+def export_outdir(outdir, iternum):
+    export_dir = f"/var/www/html/gun/genevis/temp/{iternum}"
     if os.path.exists(export_dir):
         shutil.rmtree(export_dir)
     shutil.copytree(outdir, export_dir)
 
-def main():
-    if len(sys.argv) != 2:
-        print("Usage: %s <input dir>" % sys.argv[0])
-        exit(1)
-    indir = sys.argv[1]
-    target = os.path.basename(indir).split("-iter")[0]
-
+def do(indir):
+    target, iternum = os.path.basename(indir).split("-iter-")
+    # filler seed log
+    dest = os.path.join(indir, "seed_log.txt")
+    if not os.path.isfile(dest):
+        subprocess.run([os.path.join(BASE_DIR, "make_filler_seed_log.sh")], check=True, cwd=indir)
     # Read and parse seeds
     read_and_parse_seeds(indir)
     # Read and parse crashes
@@ -364,13 +363,26 @@ def main():
     
     outdir = generate_vis_dir(indir)
     generate_json(outdir)
-    export_outdir(outdir)
+    export_outdir(outdir, iternum)
 
     # just for now
-    tmpdir = os.path.join(BASE_DIR, "output", "tmp")
+    tmpdir = os.path.join(BASE_DIR, "output", "tmp", iternum)
     if os.path.exists(tmpdir):
         shutil.rmtree(tmpdir)
     shutil.copytree(outdir, tmpdir)
+
+def main():
+    if len(sys.argv) != 2:
+        print("Usage: %s <input dir>" % sys.argv[0])
+        exit(1)
+    indir = sys.argv[1]
+    if "-iter-" in indir:
+        do(indir)
+    else:
+        root, dirs, _ = next(os.walk(indir))
+        for d in dirs:
+            subfolder_path = os.path.join(root, d)
+            do(subfolder_path)
 
 
 if __name__ == '__main__':
